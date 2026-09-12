@@ -12,7 +12,7 @@ use crate::instance::Instance;
 use crate::derive::{
     next_boss, next_pack, next_tag, next_voucher, next_shop_item,
     open_pack, open_pack_detailed, resolve_soul_legendary, resolve_wraith_rare,
-    Edition, PackContents, ShopItemType,
+    Edition, PackContents, ShopItemType,Rarity,
 };
 
 #[wasm_bindgen]
