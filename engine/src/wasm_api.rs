@@ -343,6 +343,17 @@ fn shop_kind_name(
     }
 }
 
+fn rarity_name(
+    rarity: Rarity,
+) -> &'static str {
+    match rarity {
+        Rarity::Common => "Common",
+        Rarity::Uncommon => "Uncommon",
+        Rarity::Rare => "Rare",
+        Rarity::Legendary => "Legendary",
+    }
+}
+
 fn write_shop_slot(
     out: &mut String,
     slot: &crate::derive::ShopSlot,
@@ -356,7 +367,40 @@ fn write_shop_slot(
     out.push_str("\",\"edition\":\"");
     out.push_str(edition_name(slot.edition));
 
-    out.push_str("\"}");
+    out.push_str("\",\"rarity\":\"");
+
+    if let Some(rarity) = slot.rarity {
+        out.push_str(rarity_name(rarity));
+    }
+
+    out.push_str("\",\"eternal\":");
+    out.push_str(
+        if slot.stickers.eternal {
+            "true"
+        } else {
+            "false"
+        }
+    );
+
+    out.push_str(",\"perishable\":");
+    out.push_str(
+        if slot.stickers.perishable {
+            "true"
+        } else {
+            "false"
+        }
+    );
+
+    out.push_str(",\"rental\":");
+    out.push_str(
+        if slot.stickers.rental {
+            "true"
+        } else {
+            "false"
+        }
+    );
+
+    out.push('}');
 }
 
 fn write_pack(
