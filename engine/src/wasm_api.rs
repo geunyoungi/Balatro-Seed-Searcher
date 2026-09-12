@@ -182,7 +182,11 @@ pub fn analyze_seed_basic(
     max_ante: u8,
     deck_idx: u8,
     stake_idx: u8,
+    cards_ante_8: u32,
+    cards_ante_12: u32,
+    cards_ante_16: u32,
 ) -> String {
+    
     let max_ante = max_ante.clamp(1, 16);
 
     let mut out = String::with_capacity(8192);
@@ -294,19 +298,34 @@ let pack4_contents =
         out.push_str(",\"shop\":[");
 
 write_shop_slot(&mut out, &shop1);
-out.push(',');
-write_shop_slot(&mut out, &shop2);
-out.push(',');
-write_shop_slot(&mut out, &shop3);
-out.push(',');
-write_shop_slot(&mut out, &shop4);
-out.push(',');
-write_shop_slot(&mut out, &shop5);
-out.push(',');
-write_shop_slot(&mut out, &shop6);
+
+let card_count = if ante <= 8 {
+    cards_ante_8
+} else if ante <= 12 {
+    cards_ante_12
+} else {
+    cards_ante_16
+};
+
+let mut shop_inst =
+    fresh_instance(seed, deck_idx, stake_idx);
+
+out.push_str(",\"shop\":[");
+
+for i in 0..card_count {
+
+    if i > 0 {
+        out.push(',');
+    }
+
+    let slot =
+        next_shop_item(&mut shop_inst, ante_i32);
+
+    write_shop_slot(&mut out, &slot);
+}
 
 out.push(']');
-
+        
         // Packs
    out.push_str(",\"packs\":[");
 
