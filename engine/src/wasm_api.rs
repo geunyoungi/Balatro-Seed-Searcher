@@ -219,13 +219,13 @@ pub fn analyze_seed_basic(
             next_tag(&mut tag_inst, ante_i32);
 
         // Shop - 첫 2칸
-        let mut shop_inst =
-            fresh_instance(seed, deck_idx, stake_idx);
-        let shop1 =
-            next_shop_item(&mut shop_inst, ante_i32);
-        let shop2 =
-            next_shop_item(&mut shop_inst, ante_i32);
-
+        let shop1 = next_shop_item(&mut shop_inst, ante_i32);
+let shop2 = next_shop_item(&mut shop_inst, ante_i32);
+let shop3 = next_shop_item(&mut shop_inst, ante_i32);
+let shop4 = next_shop_item(&mut shop_inst, ante_i32);
+let shop5 = next_shop_item(&mut shop_inst, ante_i32);
+let shop6 = next_shop_item(&mut shop_inst, ante_i32);
+            
         // Booster packs - 첫 2개
         let mut pack_inst =
             fresh_instance(seed, deck_idx, stake_idx);
@@ -247,6 +247,25 @@ pub fn analyze_seed_basic(
                 pack2,
                 ante_i32,
             );
+        let pack3 =
+    next_pack(&mut pack_inst, ante_i32);
+
+let pack3_contents =
+    open_pack_detailed(
+        &mut pack_inst,
+        pack3,
+        ante_i32,
+    );
+
+let pack4 =
+    next_pack(&mut pack_inst, ante_i32);
+
+let pack4_contents =
+    open_pack_detailed(
+        &mut pack_inst,
+        pack4,
+        ante_i32,
+    );
 
         out.push('{');
 
@@ -271,25 +290,36 @@ pub fn analyze_seed_basic(
 
         // Shop
         out.push_str(",\"shop\":[");
-        write_shop_slot(&mut out, &shop1);
-        out.push(',');
-        write_shop_slot(&mut out, &shop2);
-        out.push(']');
+
+write_shop_slot(&mut out, &shop1);
+out.push(',');
+write_shop_slot(&mut out, &shop2);
+out.push(',');
+write_shop_slot(&mut out, &shop3);
+out.push(',');
+write_shop_slot(&mut out, &shop4);
+out.push(',');
+write_shop_slot(&mut out, &shop5);
+out.push(',');
+write_shop_slot(&mut out, &shop6);
+
+out.push(']');
 
         // Packs
-        out.push_str(",\"packs\":[");
-        write_pack(
-            &mut out,
-            pack1,
-            &pack1_contents,
-        );
-        out.push(',');
-        write_pack(
-            &mut out,
-            pack2,
-            &pack2_contents,
-        );
-        out.push(']');
+   out.push_str(",\"packs\":[");
+
+write_pack(&mut out, pack1, &pack1_contents);
+out.push(',');
+
+write_pack(&mut out, pack2, &pack2_contents);
+out.push(',');
+
+write_pack(&mut out, pack3, &pack3_contents);
+out.push(',');
+
+write_pack(&mut out, pack4, &pack4_contents);
+
+out.push(']');
 
         out.push('}');
     }
