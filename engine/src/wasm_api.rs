@@ -174,6 +174,8 @@ fn json_escape(s: &str) -> String {
             c => out.push(c),
         }
     }
+    out
+}
   #[wasm_bindgen]
 pub fn analyze_seed_basic(
     seed: &str,
