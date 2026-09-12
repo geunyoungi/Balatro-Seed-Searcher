@@ -218,7 +218,9 @@ pub fn analyze_seed_basic(
         let big_tag =
             next_tag(&mut tag_inst, ante_i32);
 
-        // Shop - 첫 2칸
+        // Shop - 첫 6칸
+        let mut shop_inst =
+    fresh_instance(seed, deck_idx, stake_idx);
         let shop1 = next_shop_item(&mut shop_inst, ante_i32);
 let shop2 = next_shop_item(&mut shop_inst, ante_i32);
 let shop3 = next_shop_item(&mut shop_inst, ante_i32);
