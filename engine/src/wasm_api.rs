@@ -176,59 +176,201 @@ fn json_escape(s: &str) -> String {
     }
     out
 }
-  #[wasm_bindgen]
+#[wasm_bindgen]
 pub fn analyze_seed_basic(
     seed: &str,
     max_ante: u8,
     deck_idx: u8,
     stake_idx: u8,
 ) -> String {
-
     let max_ante = max_ante.clamp(1, 16);
 
-    let mut out = String::with_capacity(2048);
+    let mut out = String::with_capacity(8192);
 
     out.push_str("{\"ok\":true,\"seed\":\"");
     out.push_str(&json_escape(seed));
     out.push_str("\",\"antes\":[");
 
     for ante in 1..=max_ante {
-
         if ante > 1 {
             out.push(',');
         }
 
-        let mut boss_inst = fresh_instance(seed, deck_idx, stake_idx);
-        let boss = next_boss(&mut boss_inst, ante as i32);
+        let ante_i32 = ante as i32;
 
-        let mut voucher_inst = fresh_instance(seed, deck_idx, stake_idx);
-        let voucher = next_voucher(&mut voucher_inst, ante as i32);
+        // Boss
+        let mut boss_inst =
+            fresh_instance(seed, deck_idx, stake_idx);
+        let boss =
+            next_boss(&mut boss_inst, ante_i32);
 
-        let mut tag_inst = fresh_instance(seed, deck_idx, stake_idx);
-        let small_tag = next_tag(&mut tag_inst, ante as i32);
-        let big_tag = next_tag(&mut tag_inst, ante as i32);
+        // Voucher
+        let mut voucher_inst =
+            fresh_instance(seed, deck_idx, stake_idx);
+        let voucher =
+            next_voucher(&mut voucher_inst, ante_i32);
 
-        out.push_str("{\"ante\":");
+        // Tags
+        let mut tag_inst =
+            fresh_instance(seed, deck_idx, stake_idx);
+        let small_tag =
+            next_tag(&mut tag_inst, ante_i32);
+        let big_tag =
+            next_tag(&mut tag_inst, ante_i32);
+
+        // Shop - 첫 2칸
+        let mut shop_inst =
+            fresh_instance(seed, deck_idx, stake_idx);
+        let shop1 =
+            next_shop_item(&mut shop_inst, ante_i32);
+        let shop2 =
+            next_shop_item(&mut shop_inst, ante_i32);
+
+        // Booster packs - 첫 2개
+        let mut pack_inst =
+            fresh_instance(seed, deck_idx, stake_idx);
+
+        let pack1 =
+            next_pack(&mut pack_inst, ante_i32);
+        let pack1_contents =
+            open_pack_detailed(
+                &mut pack_inst,
+                pack1,
+                ante_i32,
+            );
+
+        let pack2 =
+            next_pack(&mut pack_inst, ante_i32);
+        let pack2_contents =
+            open_pack_detailed(
+                &mut pack_inst,
+                pack2,
+                ante_i32,
+            );
+
+        out.push('{');
+
+        out.push_str("\"ante\":");
         out.push_str(&ante.to_string());
 
         out.push_str(",\"boss\":\"");
         out.push_str(&json_escape(boss));
+        out.push('"');
 
-        out.push_str("\",\"voucher\":\"");
+        out.push_str(",\"voucher\":\"");
         out.push_str(&json_escape(voucher));
+        out.push('"');
 
-        out.push_str("\",\"small_tag\":\"");
+        out.push_str(",\"small_tag\":\"");
         out.push_str(&json_escape(small_tag));
+        out.push('"');
 
-        out.push_str("\",\"big_tag\":\"");
+        out.push_str(",\"big_tag\":\"");
         out.push_str(&json_escape(big_tag));
+        out.push('"');
 
-        out.push_str("\"}");
+        // Shop
+        out.push_str(",\"shop\":[");
+        write_shop_slot(&mut out, &shop1);
+        out.push(',');
+        write_shop_slot(&mut out, &shop2);
+        out.push(']');
+
+        // Packs
+        out.push_str(",\"packs\":[");
+        write_pack(
+            &mut out,
+            pack1,
+            &pack1_contents,
+        );
+        out.push(',');
+        write_pack(
+            &mut out,
+            pack2,
+            &pack2_contents,
+        );
+        out.push(']');
+
+        out.push('}');
     }
 
     out.push_str("]}");
 
     out
+}
+
+fn shop_kind_name(
+    kind: ShopItemType,
+) -> &'static str {
+    match kind {
+        ShopItemType::Joker => "Joker",
+        ShopItemType::Tarot => "Tarot",
+        ShopItemType::Planet => "Planet",
+        ShopItemType::PlayingCard => "Playing Card",
+        ShopItemType::Spectral => "Spectral",
+    }
+}
+
+fn write_shop_slot(
+    out: &mut String,
+    slot: &crate::derive::ShopSlot,
+) {
+    out.push_str("{\"type\":\"");
+    out.push_str(shop_kind_name(slot.kind));
+
+    out.push_str("\",\"item\":\"");
+    out.push_str(&json_escape(slot.item));
+
+    out.push_str("\",\"edition\":\"");
+    out.push_str(edition_name(slot.edition));
+
+    out.push_str("\"}");
+}
+
+fn write_pack(
+    out: &mut String,
+    pack_name: &str,
+    contents: &PackContents,
+) {
+    out.push_str("{\"name\":\"");
+    out.push_str(&json_escape(pack_name));
+    out.push_str("\",\"contents\":[");
+
+    match contents {
+        PackContents::Tarots(items)
+        | PackContents::Planets(items)
+        | PackContents::Spectrals(items)
+        | PackContents::Jokers(items) => {
+            for (i, item) in items.iter().enumerate() {
+                if i > 0 {
+                    out.push(',');
+                }
+
+                out.push('"');
+                out.push_str(&json_escape(item));
+                out.push('"');
+            }
+        }
+
+        PackContents::StandardCards(cards) => {
+            for (i, card) in cards.iter().enumerate() {
+                if i > 0 {
+                    out.push(',');
+                }
+
+                out.push('"');
+                out.push_str(
+                    &json_escape(card.base)
+                );
+                out.push('"');
+            }
+        }
+
+        PackContents::Standard
+        | PackContents::Unknown => {}
+    }
+
+    out.push_str("]}");
 }
 
 fn edition_name(e: Edition) -> &'static str {
