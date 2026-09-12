@@ -174,6 +174,58 @@ fn json_escape(s: &str) -> String {
             c => out.push(c),
         }
     }
+  #[wasm_bindgen]
+pub fn analyze_seed_basic(
+    seed: &str,
+    max_ante: u8,
+    deck_idx: u8,
+    stake_idx: u8,
+) -> String {
+
+    let max_ante = max_ante.clamp(1, 16);
+
+    let mut out = String::with_capacity(2048);
+
+    out.push_str("{\"ok\":true,\"seed\":\"");
+    out.push_str(&json_escape(seed));
+    out.push_str("\",\"antes\":[");
+
+    for ante in 1..=max_ante {
+
+        if ante > 1 {
+            out.push(',');
+        }
+
+        let mut boss_inst = fresh_instance(seed, deck_idx, stake_idx);
+        let boss = next_boss(&mut boss_inst, ante as i32);
+
+        let mut voucher_inst = fresh_instance(seed, deck_idx, stake_idx);
+        let voucher = next_voucher(&mut voucher_inst, ante as i32);
+
+        let mut tag_inst = fresh_instance(seed, deck_idx, stake_idx);
+        let small_tag = next_tag(&mut tag_inst, ante as i32);
+        let big_tag = next_tag(&mut tag_inst, ante as i32);
+
+        out.push_str("{\"ante\":");
+        out.push_str(&ante.to_string());
+
+        out.push_str(",\"boss\":\"");
+        out.push_str(&json_escape(boss));
+
+        out.push_str("\",\"voucher\":\"");
+        out.push_str(&json_escape(voucher));
+
+        out.push_str("\",\"small_tag\":\"");
+        out.push_str(&json_escape(small_tag));
+
+        out.push_str("\",\"big_tag\":\"");
+        out.push_str(&json_escape(big_tag));
+
+        out.push_str("\"}");
+    }
+
+    out.push_str("]}");
+
     out
 }
 
