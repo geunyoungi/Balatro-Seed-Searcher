@@ -294,10 +294,7 @@ let pack4_contents =
         out.push_str(&json_escape(big_tag));
         out.push('"');
 
-        // Shop
-        out.push_str(",\"shop\":[");
-
-write_shop_slot(&mut out, &shop1);
+    
 
 let card_count = if ante <= 8 {
     cards_ante_8
